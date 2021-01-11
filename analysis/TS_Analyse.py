@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[83]:
+# In[3]:
 
 
 import pandas as pd
@@ -30,18 +30,16 @@ def preprocessing():
 preprocessing()
 
 
-# In[92]:
+# In[13]:
 
-
-def analyse_group_means(df):
-    dp = df.groupby(df.original_publish_year).agg({'minmax_norm_ratings': np.mean})
-    return dp
 
 def analyse_highest_book(df, a):
+    dp = df.groupby(df.original_publish_year).agg({'minmax_norm_ratings': np.mean})
+    dp = dp.rename(columns={'minmax_norm_ratings': 'minmax_norm_ratings_mean'})
     author_group = df.loc[df['author'] == a]
     book_max_rating = author_group.iloc[author_group['minmax_norm_ratings'].argmax()]['awards']
+    print(dp)
     return book_max_rating
 
-print(analyse_group_means(preprocessing()))
 print(analyse_highest_book(preprocessing(), 'abc'))
 
