@@ -7,7 +7,7 @@
 # Option 1:
 
 
-# In[120]:
+# In[122]:
 
 
 import pandas as pd
@@ -26,12 +26,11 @@ def preprocessing():
     df['awards'] = df.awards.str.split(',', expand=False)
     df['award count'] = df['awards'].str.len()
     
-    df['avg_ratings_min_max_norm'] = 1 + (df['avg_ratings'] - df.avg_ratings.min()) / (df.avg_ratings.max()-df.avg_ratings.min()) *9
+    df['minmax_norm_rating'] = 1 + (df['avg_ratings'] - df.avg_ratings.min()) / (df.avg_ratings.max()-df.avg_ratings.min()) *9
 
     df['avg_ratings_mean'] = 1 + (df['avg_ratings'] - df.avg_ratings.mean()) / (df.avg_ratings.max()-df.avg_ratings.min()) *9
     
     print(df)
-
 preprocessing()
 
 
