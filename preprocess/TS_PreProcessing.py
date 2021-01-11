@@ -7,7 +7,7 @@
 # Option 1:
 
 
-# In[122]:
+# In[1]:
 
 
 import pandas as pd
@@ -16,21 +16,22 @@ def preprocessing():
     #df = pd.read_csv(csv_path)
 
     df = pd.DataFrame([
-      { 'id': 1, 'avg_ratings': 4.1, 'awards': 'Hello, Hello, Hello' },
-      { 'id': 2, 'avg_ratings': 2.5, 'awards': 'Hello, Hello' },
-      { 'id': 3, 'avg_ratings': 4.5, 'awards': 'Hello' },
-      { 'id': 4, 'avg_ratings': 3.3, 'awards': 'Hello, Hello, Hello, Hello, Hello' }, 
-      { 'id': 5, 'avg_ratings': 3.8, 'awards': 'Hello, Hello, Hello, Hello' }, 
-      { 'id': 6, 'avg_ratings': 2.8, 'awards': 'Hello, Hello, Hello' }])
+      { 'author': 'abc', 'avg_ratings': 4.1, 'awards': 'Hello, Hello, Hello', 'original_publish_year': 2010},
+      { 'author': 'def', 'avg_ratings': 2.5, 'awards': 'Hello, Hello', 'original_publish_year': 2012},
+      { 'author': 'abc', 'avg_ratings': 4.5, 'awards': 'Hello', 'original_publish_year': 2010},
+      { 'author': 'def', 'avg_ratings': 3.3, 'awards': 'Hello, Hello, Hello, Hello, Hello', 'original_publish_year': 2012}, 
+      { 'author': 'abc', 'avg_ratings': 3.8, 'awards': 'Hello, Hello, Hello, Hello', 'original_publish_year': 2010}, 
+      { 'author': 'obc', 'avg_ratings': 2.8, 'awards': 'Hello, Hello, Hello', 'original_publish_year': 2012}])
 
     df['awards'] = df.awards.str.split(',', expand=False)
     df['award count'] = df['awards'].str.len()
     
-    df['minmax_norm_rating'] = 1 + (df['avg_ratings'] - df.avg_ratings.min()) / (df.avg_ratings.max()-df.avg_ratings.min()) *9
+    df['avg_ratings_min_max_norm'] = 1 + (df['avg_ratings'] - df.avg_ratings.min()) / (df.avg_ratings.max()-df.avg_ratings.min()) *9
 
     df['avg_ratings_mean'] = 1 + (df['avg_ratings'] - df.avg_ratings.mean()) / (df.avg_ratings.max()-df.avg_ratings.min()) *9
     
     print(df)
+
 preprocessing()
 
 
