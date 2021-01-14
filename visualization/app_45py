@@ -13,9 +13,11 @@ from matplotlib.ticker import MaxNLocator
 
 import streamlit as st
 from PIL import Image # Required to show images
+import plotly.express as px
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
 
-
-# In[21]:
+# In[41]:
 
 
 # just for production ... should be done in seperate Notebook
@@ -72,21 +74,26 @@ def preprocessing():
     # delete last 7 rows    
     df.drop(df.tail(7).index, inplace = True) 
 
+    # delete unnecessary columns
+    df.drop(['Unnamed: 0', 'id'], axis = 1, inplace = True)
+
     return df
 
 preprocessing()
+
+df = preprocessing()
 
 
 # In[ ]:
 
 
-# TopGif
+# TITLE
 st.markdown("![The world of fantasy](https://media.giphy.com/media/3o7bu7BKhyOJt36jp6/source.gif)")
 
 st.title("Welcome to the world of fantasy")
 
 
-# In[28]:
+# In[45]:
 
 
 # Show our data
@@ -99,16 +106,23 @@ st.markdown("""Some nice text about fantasy books""")
 if st.button("Show me the data."):
     st.dataframe(df)
 
+# Choose columns to show
 st.markdown("If you want to display only few columns, you can chose here:")
 columns_to_show = st.multiselect('', df.columns)
 
+# Books with rating higher than X
 st.markdown("Just show books with a rating higher than:")
-threshold = st.slider("", 1, 10)
+s1_min = int(df.number_of_ratings.min())
+s1_max = int(df.number_of_ratings.max())
+threshold = st.slider("", s1_min, s1_max)
 filtered = df[df["minmax_norm_ratings"] >= threshold]
 st.dataframe(filtered[columns_to_show])
 
+# Books with more awards than X
 st.markdown("Just show books with more awards than:")
-threshold = st.slider("", 0, 50)
+s2_min = int(df.award_count.min())
+s2_max = int(df.award_count.max())
+threshold = st.slider("", s2_min, s2_max)
 filtered = df[df["award_count"] >= threshold]
 st.dataframe(filtered[columns_to_show])
 
@@ -160,20 +174,36 @@ ax= plt.ylabel('Number of books')
 
 st.pyplot(plt)
 
+# Show a list of the TOP TEN awarded books 
 st.subheader("And the award for best EPIC fantasy book goes to...")
-st.markdown("![The world of fantasy](https://media.giphy.com/media/3o7bu7BKhyOJt36jp6/source.gif)")
+st.markdown("![The best EPIC fantasy book](https://media.giphy.com/media/8FrC4SFYdOUJE4rjIs/source.gif)")
 df_sorted = df.sort_values(by='award_count', ascending=False).head(10)
 st.dataframe(df_sorted['Title'])
+
+
+# More Ratings = More Awards? 
+st.subheader("Here you can see the number of ratings with the number of awards")
+sns.set_context('talk')
+sns.set_style('whitegrid')
+sns.set_palette(['purple'])
+plt.figure(figsize=(20, 10))
+ax= sns.regplot(data=preprocessing(), y="number_of_ratings", x="award_count")
+ax= plt.ylabel("Number of awards")
+ax= plt.xlabel("Number of ratings")
+
+st.pyplot(plt)
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:
 
 
 # Interactive Genre List
-
-
-# In[ ]:
-
 
 # 8 Visualize the awards distribution in a barplot with a list of books shown when clicked on a bar
 
