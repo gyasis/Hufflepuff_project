@@ -3,6 +3,8 @@
 
 
 ### ignore "<>"
+
+# git clone <git address>
 # create new branch
 git checkout -b <branch name>
 
