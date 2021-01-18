@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[2]:
+# In[68]:
 
 
 import pandas as pd
@@ -10,19 +10,22 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from scipy import stats 
 from matplotlib.ticker import MaxNLocator
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def preprocessing():
-    df = pd.read_csv("lastfantasydraft.csv")
+    df = pd.read_csv("goodreads_scraping_final.csv")
+    
     # delete unnecessary columns
-    df.drop(['Unnamed: 0', 'id', 'Num_pages', 'VerifyDate'], axis = 1, inplace = True)
+    df.drop(['Unnamed: 0', 'Unnamed: 0.1'], axis = 1, inplace = True)
 
-    df.rename(columns={'Series-Name': 'Serie_name', 'name':'Title', 'OriginalPDate':'Publishdate', 'author':'Author', 'Verify_pages': 'Num_pages'}, inplace=True)
+    df.rename(columns={'name':'Title', 'Dates':'Publishdate', 'author':'Author', 'Verify_pages': 'Num_pages'}, inplace=True)
+    
+    df.index.names = ["ID"]
     
     # cleaning the Title
     df['Title'] = df['Title'].str.strip()
-    
-    df['Serie_name'] = df['Serie_name'].replace('[\n]', '')
-    
+        
     # Calculating number of awards
     df['Awards'] = df['Awards'].str.strip('[]').replace(r'^\s*$', np.NaN, regex=True)
     df['Awards_x'] = df.Awards.str.split(',')
@@ -30,8 +33,11 @@ def preprocessing():
     df['award_count'] = df['award_count'].fillna(0).astype(int)
     df = df.drop(['Awards_x'], axis= 1)
     
-    # cleaning series column
-    #df['Series'] = df['Series'].str.strip('[]')
+    # cleaning SeriesName
+    df['SeriesName'] = df.SeriesName.str.replace('(Series)', '').str.replace('(\n)', '')
+    
+    # cleaning ISBN
+    df['ISBN'] = df.ISBN.str.replace(r"(ISBN13:)", '').str.strip(' ()')
     
     # cleaning setting column
     df['Setting'] = df['Setting'].str.strip('[]')
@@ -71,26 +77,35 @@ def preprocessing():
     df['mean_norm_ratings'] = 1 + ((df['avg_ratings'] - df.avg_ratings.mean()) / (df.avg_ratings.max()-df.avg_ratings.min())) *9
 
     # delete last 7 rows    
-    df.drop(df.tail(7).index, inplace = True) 
+    #df.drop(df.tail(7).index, inplace = True) 
 
     # Just for CSV to show data
     #df.rename(columns={'url': 'URL', 'avg_ratings':'Average rating', 'original_publish_year':'Publishingdate', 'number_of_ratings':'Number of ratings', 'Num_pages': 'Number of pages', 'award_count': 'Number of awards'}, inplace=True)
     #df.to_csv('Data_Show.csv')
     
-    df.to_csv('Data_graphs.csv')
+    dm = pd.read_csv('data_map.csv')
+    dm = dm['map_url']
+    
+    dc = pd.read_csv('data_cover.csv')
+    dc = dc['cover_url']
+    
+    df = df.join(dm)
+    df = df.join(dc)
+    
+    df.to_csv('data_final.csv')
     return df
-
 
 preprocessing()
 
 
-# In[3]:
+# In[69]:
 
 
 # Analyse exercise from day 1
 
 def analyse_highest_book(df, a):
-    df_a = df.dropna(subset= ['minmax_norm_ratings'])
+    df_a = df.dropna(subset= ['original_publish_year','minmax_norm_ratings'])
+    df_a['original_publish_year'] = df_a['original_publish_year'].astype(int) 
     dp = df_a.groupby(df_a.original_publish_year).agg({'minmax_norm_ratings': np.mean})
     dp = dp.rename(columns={'minmax_norm_ratings': 'minmax_norm_ratings_mean'})
     author_group = df.loc[df['Author'] == a]
@@ -102,10 +117,13 @@ def analyse_highest_book(df, a):
 print(analyse_highest_book(preprocessing(), 'J.R.R. Tolkien'))
 
 
-# In[5]:
+# In[62]:
 
 
 # 1. Create a 2D scatterplot with pages on the x-axis and num_ratings on the y-axis.
+
+df_s = preprocessing()
+df_s = df_s.dropna(subset= ['Num_pages','number_of_ratings', 'award_count'])
 
 plt.figure(figsize=(20,10))
 x1  = df_s['Num_pages'].astype(int)
@@ -128,7 +146,7 @@ plt.tight_layout()
 plt.show()
 
 
-# In[6]:
+# In[70]:
 
 
 # 3. Visualise the avg_rating distribution.
@@ -155,7 +173,7 @@ ax_hist.set(xlabel='Average Rating', ylabel='Number of books')
 plt.show()
 
 
-# In[7]:
+# In[71]:
 
 
 # 4. Visualise the minmax_norm_rating distribution.
@@ -173,7 +191,7 @@ ax_hist.set(xlabel='Min-Max Normalized Rating', ylabel='')
 plt.show()
 
 
-# In[8]:
+# In[72]:
 
 
 # 5. Visualise the mean_norm_rating distribution.
@@ -193,7 +211,7 @@ ax_hist.set(xlabel='Mean Normalized Rating', ylabel='')
 plt.show()
 
 
-# In[9]:
+# In[73]:
 
 
 # 6 Create one graph that represents in the same figure both minmax_norm_rating and mean_norm_ratingdistributions.
@@ -225,7 +243,7 @@ ax.set(xlabel='book number', ylabel='min_max normal rating');
 # 7 What is the best fit in terms of a distribution (normal, chi-squared...) to represent each of those graphs?
 
 
-# In[ ]:
+# In[82]:
 
 
 get_ipython().run_line_magic('matplotlib', 'inline')
@@ -313,7 +331,7 @@ def best_fit_distribution(data, bins=200, ax=None):
     return (best_distribution.name, best_params)
 
 
-# In[ ]:
+# In[83]:
 
 
 def make_pdf(dist, params, size=10000):
@@ -336,7 +354,7 @@ def make_pdf(dist, params, size=10000):
     return pdf
 
 
-# In[ ]:
+# In[84]:
 
 
 # Load data from statsmodels datasets
@@ -380,7 +398,7 @@ plt.legend()
 plt.show()
 
 
-# In[10]:
+# In[74]:
 
 
 # 8 Visualize the awards distribution in a boxplot and aggregtated bars. 
@@ -395,7 +413,7 @@ _= sns.boxplot(x=preprocessing()["award_count"],color='aqua', showmeans=True, me
 _= plt.xlabel('Number of awards');
 
 
-# In[11]:
+# In[75]:
 
 
 # 8 Visualize the awards distribution in a boxplot and aggregtated bars. 
@@ -427,7 +445,7 @@ ax= plt.xlabel('Number of awards')
 ax= plt.ylabel('Number of books')
 
 
-# In[12]:
+# In[76]:
 
 
 df= preprocessing()
@@ -435,46 +453,38 @@ df_sorted = df.sort_values(by='award_count', ascending=False).head(10)
 df_sorted['Title']
 
 
-# In[13]:
-
+# In[80]:
 
 
 # 9 Now, make a simple plot to visualise the ratings w.r.t. the years!
 
+new_df = preprocessing().dropna(subset=['number_of_ratings', 'original_publish_year'])
+new_df['original_publish_year'] = new_df['original_publish_year'].astype(int) 
+new_df.sort_values(by=['original_publish_year'],inplace=True)
 
-
-new_df_pawas = preprocessing().dropna(subset=['number_of_ratings', 'original_publish_year'])
-new_df_pawas.sort_values(by=['original_publish_year'],inplace=True)
-#new_df_pawas
-
-#d=new_df_pawas.to_dict
 df55=pd.DataFrame()
-y=list(new_df_pawas['original_publish_year'])
-r=list(new_df_pawas['number_of_ratings'])
+y=list(new_df['original_publish_year'])
+r=list(new_df['number_of_ratings'])
 df55['year']=y
 df55['number_of_ratings']=r
-#df55.year
+
 sns.set_context('talk')
 sns.set_style('whitegrid')
 sns.set_palette(['purple'])
 plt.figure(figsize=(19, 9))
 plt.subplot(2,1,1)
 new_plt2=sns.scatterplot(y=df55["number_of_ratings"],x=df55["year"],s=50)
-#new_plt2=sns.regplot(data=df55,y="number_of_ratings",x="year")
-#new_plt2.set(xticks=df55.year[0:-2])
 plt.xlabel("Year",size = 30)
 plt.ylabel("Number of ratings",size = 30)
 new_plt2.tick_params(labelsize=11,rotation=60)
-#df55.year[0::100]
 
 
-# In[14]:
+# In[81]:
 
 
 # 10. Make a scatterplot to represent minmax_norm_ratings in function of the number of awards won by the book.
 
-#sns.set(rc={'figure.figsize':(8,5.5)})
-#pawas
+
 sns.set_context('talk')
 sns.set_style('whitegrid')
 sns.set_palette(['purple'])
@@ -487,10 +497,4 @@ plt.subplot(2,1,1)
 _= sns.regplot(data=preprocessing(), x="minmax_norm_ratings", y="award_count")
 _= plt.ylabel("Number of awards")
 _= plt.xlabel("Min-Max normalized ratings")
-
-
-# In[ ]:
-
-
-
 

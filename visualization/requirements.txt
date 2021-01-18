@@ -1,3 +1,0 @@
-cufflinks
-plotly
-streamlit
