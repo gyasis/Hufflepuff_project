@@ -1,3 +1,9 @@
 cufflinks
 plotly
 streamlit
+seaborn
+bokeh
+PIL
+plotly
+base64
+matplotlib
